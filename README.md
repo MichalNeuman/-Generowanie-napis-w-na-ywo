@@ -1,0 +1,1 @@
+# -Generowanie-napis-w-na-ywo
