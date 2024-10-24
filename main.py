@@ -1,0 +1,1 @@
+#generowanie napisow na zywo
