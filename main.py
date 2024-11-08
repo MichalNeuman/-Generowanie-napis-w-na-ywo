@@ -4,7 +4,9 @@ import numpy as np
 import torch
 from faster_whisper import WhisperModel
 import time
-print(torch.version.cuda)# Configuration
+from datetime import timedelta
+
+print(torch.version.cuda)  # Configuration
 model_size = "medium"  # Choose model size like "base", "small", "medium", or "large-v2"
 
 device = "cuda" if torch.cuda.is_available() else "cpu"  # Set to "cpu" or "cuda" for GPU
@@ -21,15 +23,15 @@ CHUNK = int(RATE * chunk_duration)  # Number of frames per buffer
 audio = pyaudio.PyAudio()
 stream = audio.open(format=pyaudio.paInt16, channels=1, rate=RATE, input=True, frames_per_buffer=CHUNK)
 
-def transribe():
-    global wa
-    wa = ''
+
+def transcribe():
+    segments_list = []  # List to store each segment's start, end, and transcription text
     print("Recording and transcribing...")
     try:
-        timeout = 10
         start_time = time.time()
+        segment_start_time = start_time
 
-        while time.time() - start_time < timeout:
+        while True:
             # Record audio chunk
             audio_data = stream.read(CHUNK)
             # Convert audio data to NumPy array
@@ -39,11 +41,23 @@ def transribe():
             segments, info = model.transcribe(audio_np, beam_size=5)
             print(f"Detected language '{info.language}' with probability {info.language_probability:.2f}")
 
-            # Print transcription for each segment
+            # Calculate time elapsed for each segment
             for segment in segments:
-                wa += segment.text + ' '
-                print(f"[{segment.start:.2f}s -> {segment.end:.2f}s] {segment.text}")
+                # Calculate segment start and end times
+                relative_segment_start = segment_start_time - start_time
+                relative_segment_end = relative_segment_start + (segment.end - segment.start)
 
+                # Append each segment's transcription with timing to the list
+                segment_info = {
+                    "start": f"{relative_segment_start:.2f}s",
+                    "end": f"{relative_segment_end:.2f}s",
+                    "text": segment.text
+                }
+                segments_list.append(segment_info)
+
+                # Print and update the segment_start_time for the next segment
+                print(f"[{relative_segment_start:.2f}s -> {relative_segment_end:.2f}s] {segment.text}")
+                segment_start_time += segment.end - segment.start
 
     except KeyboardInterrupt:
         print("\nTranscription stopped.")
@@ -54,9 +68,31 @@ def transribe():
         stream.close()
         audio.terminate()
 
-def saving(string):
-    with open("transcription.txt", "w") as file:
-        file.write(string)
-transribe()
-saving(wa)
+    return segments_list  # Return the list of segments for saving
 
+
+def format_time(seconds):
+    """Convert seconds to SRT time format HH:MM:SS,ms"""
+    delta = timedelta(seconds=seconds)
+    total_seconds = int(delta.total_seconds())
+    milliseconds = int((delta.total_seconds() - total_seconds) * 1000)
+    return f"{str(delta)[:-3]},{milliseconds:03d}"
+
+
+def saving(segments_list):
+    with open("transcription.srt", "w") as file:
+        for index, segment in enumerate(segments_list, start=1):
+            start_time = format_time(float(segment['start'][:-1]))  # Convert start time to SRT format
+            end_time = format_time(float(segment['end'][:-1]))  # Convert end time to SRT format
+            text = segment['text']
+
+            # Write in SRT format
+            file.write(f"{index}\n")
+            file.write(f"{start_time} --> {end_time}\n")
+            file.write(f"{text}\n\n")
+
+
+
+# Execute transcription and save results
+segments_data = transcribe()
+saving(segments_data)
