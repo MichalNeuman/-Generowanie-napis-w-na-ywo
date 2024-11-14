@@ -5,34 +5,47 @@ class TranscriptionApp:
         self.root = root
         self.queue = queue
         self.root.title("Transkrypcja")
-        self.root.geometry("800x200")
 
-        #okno półprzezroczyste
+        # Pobieramy wymiary ekranu
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+
+        # Ustawiamy pozycję okna w dolnej części ekranu z marginesem nad paskiem zadań
+        window_width = 800
+        window_height = 150  # Ustawiamy wysokość na 200 pikseli, aby zmieściły się 3 linijki tekstu
+        taskbar_height = 50  # Zakładamy wysokość paska zadań, możesz dostosować
+        position_right = (screen_width // 2) - (window_width // 2)
+        position_down = screen_height - window_height - taskbar_height
+
+        self.root.geometry(f"{window_width}x{window_height}+{position_right}+{position_down}")
+
+        # Ustawienie przezroczystości okna (wartość od 0.0 do 1.0)
         self.root.attributes('-alpha', 0.8)
 
+        # Usunięcie górnego paska okna
+        self.root.overrideredirect(True)
+
+        # Ustawienie okna jako zawsze na wierzchu
+        self.root.attributes('-topmost', 1)
+
         # Tworzenie ramki dla lepszego wyglądu i układu
-        frame = Frame(self.root, bg="#FFFFFF")  # Białe tło
+        frame = Frame(self.root, bg="#000000")  # Czarne tło
         frame.pack(expand=True, fill="both")
 
-        # Tworzymy pole tekstowe z przewijaniem
+        # Tworzymy pole tekstowe
         self.text_widget = Text(
             frame,
             wrap="word",
-            font=("Helvetica", 18),
-            bg="#FFFFFF",
-            fg="#000000",
+            font=("Helvetica", 25),
+            bg="#000000",  # Czarne tło
+            fg="#FFFFFF",  # Biały tekst
             borderwidth=0,
-            padx=20,
-            pady=20,
-            spacing3=20
+            padx=30,
+            pady=10,  # Zmniejszamy padding, aby zmniejszyć marginesy
+            spacing3=10,  # Dodajemy odstęp między wierszami
+            height=3  # Ustawiamy wysokość na 3 linie
         )
         self.text_widget.pack(expand=True, fill="both")
-
-        # Dodajemy pionowy scroll bar
-        self.scrollbar = Scrollbar(self.text_widget)
-        self.scrollbar.pack(side="right", fill="y")
-        self.text_widget.config(yscrollcommand=self.scrollbar.set)
-        self.scrollbar.config(command=self.text_widget.yview)
 
         # Wyłączamy edycję tekstu przez użytkownika
         self.text_widget.config(state="disabled")
@@ -52,7 +65,7 @@ class TranscriptionApp:
             # Odblokowujemy pole tekstowe, aby dodać nowy tekst
             self.text_widget.config(state="normal")
             self.text_widget.insert(END, text)
-            self.text_widget.tag_add("center", "end-1l", "end")
+            self.text_widget.tag_add("center", "end-1l", "end")  # Dodajemy tag wyśrodkowujący do nowej linii
             self.text_widget.config(state="disabled")
 
             # Automatyczne przewijanie do ostatniego wiersza
