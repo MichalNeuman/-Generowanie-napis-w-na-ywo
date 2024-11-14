@@ -1,4 +1,7 @@
-from tkinter import Tk, Label, Scrollbar, Text, END, Frame
+from ttkbootstrap import Style
+from ttkbootstrap.constants import *
+from tkinter import Tk, END, ttk
+from queue import Queue
 
 class TranscriptionApp:
     def __init__(self, root, queue):
@@ -6,17 +9,19 @@ class TranscriptionApp:
         self.queue = queue
         self.root.title("Transkrypcja")
 
+        # Konfiguracja stylu ttkbootstrap
+        style = Style(theme="darkly")
+
         # Pobieramy wymiary ekranu
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
 
-        # Ustawiamy pozycję okna w dolnej części ekranu z marginesem nad paskiem zadań
+        # Ustawiamy pozycję okna w dolnej części ekranu
         window_width = 800
-        window_height = 150  # Ustawiamy wysokość na 200 pikseli, aby zmieściły się 3 linijki tekstu
-        taskbar_height = 50  # Zakładamy wysokość paska zadań, możesz dostosować
+        window_height = 150
+        taskbar_height = 50
         position_right = (screen_width // 2) - (window_width // 2)
         position_down = screen_height - window_height - taskbar_height
-
         self.root.geometry(f"{window_width}x{window_height}+{position_right}+{position_down}")
 
         # Ustawienie przezroczystości okna (wartość od 0.0 do 1.0)
@@ -29,52 +34,47 @@ class TranscriptionApp:
         self.root.attributes('-topmost', 1)
 
         # Tworzenie ramki dla lepszego wyglądu i układu
-        frame = Frame(self.root, bg="#000000")  # Czarne tło
+        frame = ttk.Frame(self.root, padding=10, style="TFrame")
         frame.pack(expand=True, fill="both")
 
-        # Tworzymy pole tekstowe
-        self.text_widget = Text(
+        # Tworzymy dwa Label - jeden na poprzednią, a drugi na aktualną transkrypcję
+        self.previous_label = ttk.Label(
             frame,
-            wrap="word",
-            font=("Helvetica", 25),
-            bg="#000000",  # Czarne tło
-            fg="#FFFFFF",  # Biały tekst
-            borderwidth=0,
-            padx=30,
-            pady=10,  # Zmniejszamy padding, aby zmniejszyć marginesy
-            spacing3=10,  # Dodajemy odstęp między wierszami
-            height=3  # Ustawiamy wysokość na 3 linie
+            text="Poprzednia transkrypcja",
+            font=("Helvetica", 20),
+            background="#000000",
+            foreground="#AAAAAA",
+            anchor="center"
         )
-        self.text_widget.pack(expand=True, fill="both")
+        self.previous_label.pack(expand=True, fill="both")
 
-        # Wyłączamy edycję tekstu przez użytkownika
-        self.text_widget.config(state="disabled")
-
-        # Tworzymy tag dla wyrównania środka
-        self.text_widget.tag_configure("center", justify="center")
+        self.current_label = ttk.Label(
+            frame,
+            text="Aktualna transkrypcja",
+            font=("Helvetica", 25),
+            background="#000000",
+            foreground="#FFFFFF",
+            anchor="center"
+        )
+        self.current_label.pack(expand=True, fill="both")
 
         # Aktualizacja tekstu co 0.5 sekundy
         self.root.after(500, self.update_text)
 
     def update_text(self):
-        # Pobieramy tekst z kolejki i dodajemy do widżetu tekstowego
+        # Pobieramy tekst z kolejki i dodajemy do etykiet
         while not self.queue.empty():
             segment = self.queue.get()
-            text = f"{segment['text']}\n"  # Usunięto czas z formatu tekstu
+            text = segment['text']
 
-            # Odblokowujemy pole tekstowe, aby dodać nowy tekst
-            self.text_widget.config(state="normal")
-            self.text_widget.insert(END, text)
-            self.text_widget.tag_add("center", "end-1l", "end")  # Dodajemy tag wyśrodkowujący do nowej linii
-            self.text_widget.config(state="disabled")
-
-            # Automatyczne przewijanie do ostatniego wiersza
-            self.text_widget.see(END)
+            # Ustawiamy poprzednią transkrypcję jako bieżącą, a nową jako aktualną
+            self.previous_label.config(text=self.current_label.cget("text"))
+            self.current_label.config(text=text)
 
         # Ponownie ustawiamy aktualizację co 0.5 sekundy
         self.root.after(500, self.update_text)
 
 def run_gui(queue):
-    root = Tk()
+    root = Style(theme="darkly").master  # Ustawienie głównego okna z ttkbootstrap
     app = TranscriptionApp(root, queue)
     root.mainloop()
