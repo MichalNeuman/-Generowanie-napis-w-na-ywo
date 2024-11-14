@@ -38,8 +38,7 @@ def transcribe():
             audio_np = np.frombuffer(audio_data, dtype=np.int16).astype(np.float32) / 32768.0
 
             # Transcribe chunk
-            segments, info = model.transcribe(audio_np, beam_size=5)
-            print(f"Detected language '{info.language}' with probability {info.language_probability:.2f}")
+            segments, _ = model.transcribe(audio_np, beam_size=5, language="pl")
 
             # Calculate time elapsed for each segment
             for segment in segments:
