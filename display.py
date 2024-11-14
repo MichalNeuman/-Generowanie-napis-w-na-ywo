@@ -12,7 +12,8 @@ class TranscriptionApp:
 
         # Ustawiamy pozycję okna w dolnej części ekranu z marginesem nad paskiem zadań
         window_width = 800
-        window_height = 200  # Ustawiamy wysokość na 200 pikseli, aby zmieściły się 3 linijki tekstu
+        line_height = 50  # Zakładamy, że każda linia ma 50 pikseli wysokości
+        window_height = line_height * 3  # Dopasowujemy wysokość okna do trzech linii
         taskbar_height = 50  # Zakładamy wysokość paska zadań, możesz dostosować
         position_right = (screen_width // 2) - (window_width // 2)
         position_down = screen_height - window_height - taskbar_height
@@ -40,10 +41,10 @@ class TranscriptionApp:
             bg="#000000",  # Czarne tło
             fg="#FFFFFF",  # Biały tekst
             borderwidth=0,
-            padx=30,
-            pady=10,  # Zmniejszamy padding, aby zmniejszyć marginesy
-            spacing3=10,  # Dodajemy odstęp między wierszami
-            height=3  # Ustawiamy wysokość na 3 linie
+            padx=10,
+            pady=5,
+            spacing3=5,  # Dopasowujemy odstęp między wierszami
+            height=3
         )
         self.text_widget.pack(expand=True, fill="both")
 
@@ -53,8 +54,16 @@ class TranscriptionApp:
         # Tworzymy tag dla wyrównania środka
         self.text_widget.tag_configure("center", justify="center")
 
+        # Usunięcie nadmiarowych linii tekstu po uruchomieniu
+        self.clear_text_widget()
+
         # Aktualizacja tekstu co 0.5 sekundy
         self.root.after(500, self.update_text)
+
+    def clear_text_widget(self):
+        self.text_widget.config(state="normal")
+        self.text_widget.delete("1.0", END)
+        self.text_widget.config(state="disabled")
 
     def update_text(self):
         # Pobieramy tekst z kolejki i dodajemy do widżetu tekstowego
@@ -68,11 +77,14 @@ class TranscriptionApp:
             self.text_widget.tag_add("center", "end-1l", "end")  # Dodajemy tag wyśrodkowujący do nowej linii
             self.text_widget.config(state="disabled")
 
-            # Automatyczne przewijanie do ostatniego wiersza
-            self.text_widget.see(END)
+            # Jeśli jest więcej niż trzy linie tekstu, przewijamy tylko po dodaniu nowej linii
+            current_line_count = int(self.text_widget.index('end-1c').split('.')[0])
+            if current_line_count > 3:
+                self.text_widget.see('end-3l')  # Ustawienie widoczności ostatnich trzech linii
 
         # Ponownie ustawiamy aktualizację co 0.5 sekundy
         self.root.after(500, self.update_text)
+
 
 def run_gui(queue):
     root = Tk()
