@@ -40,21 +40,21 @@ class TranscriptionApp:
         # Tworzymy dwa Label - jeden na poprzednią, a drugi na aktualną transkrypcję
         self.previous_label = ttk.Label(
             frame,
-            text="Poprzednia transkrypcja",
             font=("Helvetica", 20),
             background="#000000",
             foreground="#AAAAAA",
-            anchor="center"
+            anchor="center",
+            wraplength=750
         )
         self.previous_label.pack(expand=True, fill="both")
 
         self.current_label = ttk.Label(
             frame,
-            text="Aktualna transkrypcja",
             font=("Helvetica", 25),
             background="#000000",
             foreground="#FFFFFF",
-            anchor="center"
+            anchor="center",
+            wraplength=750
         )
         self.current_label.pack(expand=True, fill="both")
 
