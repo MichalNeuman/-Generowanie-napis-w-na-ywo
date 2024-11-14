@@ -12,7 +12,7 @@ class TranscriptionApp:
 
         # Ustawiamy pozycję okna w dolnej części ekranu z marginesem nad paskiem zadań
         window_width = 800
-        window_height = 150  # Ustawiamy wysokość na 200 pikseli, aby zmieściły się 3 linijki tekstu
+        window_height = 200  # Ustawiamy wysokość na 200 pikseli, aby zmieściły się 3 linijki tekstu
         taskbar_height = 50  # Zakładamy wysokość paska zadań, możesz dostosować
         position_right = (screen_width // 2) - (window_width // 2)
         position_down = screen_height - window_height - taskbar_height
