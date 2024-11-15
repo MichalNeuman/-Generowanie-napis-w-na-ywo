@@ -5,6 +5,9 @@ import torch
 from faster_whisper import WhisperModel
 import time
 from datetime import timedelta
+from queue import Queue
+import threading
+from display import run_gui
 
 print(torch.version.cuda)  # Configuration
 model_size = "medium"  # Choose model size like "base", "small", "medium", or "large-v2"
@@ -23,6 +26,8 @@ CHUNK = int(RATE * chunk_duration)  # Number of frames per buffer
 audio = pyaudio.PyAudio()
 stream = audio.open(format=pyaudio.paInt16, channels=1, rate=RATE, input=True, frames_per_buffer=CHUNK)
 
+# Tworzymy kolejkę do przekazywania danych do GUI
+queue = Queue()
 
 def transcribe():
     segments_list = []  # List to store each segment's start, end, and transcription text
@@ -54,6 +59,9 @@ def transcribe():
                 }
                 segments_list.append(segment_info)
 
+                # Przekazujemy segment do GUI poprzez kolejkę
+                queue.put(segment_info)
+
                 # Print and update the segment_start_time for the next segment
                 print(f"[{relative_segment_start:.2f}s -> {relative_segment_end:.2f}s] {segment.text}")
                 segment_start_time += segment.end - segment.start
@@ -69,14 +77,12 @@ def transcribe():
 
     return segments_list  # Return the list of segments for saving
 
-
 def format_time(seconds):
     """Convert seconds to SRT time format HH:MM:SS,ms"""
     delta = timedelta(seconds=seconds)
     total_seconds = int(delta.total_seconds())
     milliseconds = int((delta.total_seconds() - total_seconds) * 1000)
     return f"{str(delta)[:-3]},{milliseconds:03d}"
-
 
 def saving(segments_list):
     with open("transcription.srt", "w") as file:
@@ -90,8 +96,10 @@ def saving(segments_list):
             file.write(f"{start_time} --> {end_time}\n")
             file.write(f"{text}\n\n")
 
+# Uruchamiamy GUI w osobnym wątku
+gui_thread = threading.Thread(target=run_gui, args=(queue,))
+gui_thread.start()
 
-
-# Execute transcription and save results
+# Wykonujemy transkrypcję i zapisujemy wyniki
 segments_data = transcribe()
 saving(segments_data)
