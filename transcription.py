@@ -42,6 +42,7 @@ def transcribe(queue):
                     "text": segment.text
                 }
                 segments_list.append(segment_info)
+
                 queue.put(segment_info)
 
                 print(f"[{relative_segment_start:.2f}s -> {relative_segment_end:.2f}s] {segment.text}")
