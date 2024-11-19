@@ -105,9 +105,9 @@ class TranscriptionApp:
                                  self.update_styles)
 
         # Przezroczystość
-        self.alpha_var = StringVar(value="90%")
-        self.add_combobox_option("Transparency", [f"{i}%" for i in range(10, 101, 10)], self.alpha_var,
-                                 self.update_transparency)
+        #self.alpha_var = StringVar(value="90%")
+        #self.add_combobox_option("Transparency", [f"{i}%" for i in range(10, 101, 10)], self.alpha_var,
+                                 #self.update_transparency)
 
         # Tryb jasny/ciemny
         self.mode_var = StringVar(value="Dark")
@@ -116,6 +116,9 @@ class TranscriptionApp:
         # Styl czcionki (normalny/pogrubiony)
         self.weight_var = StringVar(value="Normal")
         self.add_combobox_option("Font Weight", ["Normal", "Bold"], self.weight_var, self.update_styles)
+
+        self.screen_size = StringVar(value="Small")
+        self.add_combobox_option("Screen Size", ["Small", "Fullscreen"], self.screen_size, self.update_styles)
 
     def update_mode(self, event=None):
         """Zmienia tryb na jasny lub ciemny."""
@@ -174,6 +177,54 @@ class TranscriptionApp:
         font_weight = "bold" if self.weight_var.get() == "Bold" else "normal"
         self.current_label.config(font=(font_name, font_size, font_weight))
         self.previous_label.config(font=(font_name, font_size - 5, font_weight))
+
+        # Obsługa zmiany rozmiaru okna na podstawie wyboru w Screen Size
+        screen_size = self.screen_size.get()
+        if screen_size == "Fullscreen":
+            self.toggle_screen_size(fullscreen=True)
+        else:
+            self.toggle_screen_size(fullscreen=False)
+
+    def toggle_screen_size(self, fullscreen):
+        """Zmienia rozmiar okna na pełny ekran lub początkowy."""
+        if fullscreen:
+            # Przejście do trybu pełnoekranowego
+            self.root.overrideredirect(True)  # Usuń pasek tytułu
+            self.root.geometry(f"{self.root.winfo_screenwidth()}x{self.root.winfo_screenheight()}+0+0")
+
+            # Dostosowanie układu w trybie pełnoekranowym
+            self.previous_label.pack_forget()  # Usuń z obecnego układu
+            self.current_label.pack_forget()
+
+            self.previous_label.pack(expand=False, fill="x", pady=(50, 0))  # Trochę wyżej
+            self.current_label.pack(expand=True, fill="both", pady=(0, 50))  # Na środku
+        else:
+            # Powrót do początkowego rozmiaru
+            window_width = 800
+            window_height = 200
+            screen_width = self.root.winfo_screenwidth()
+            screen_height = self.root.winfo_screenheight()
+            taskbar_height = 50
+
+            # Wyliczenie pozycji do wyśrodkowania
+            position_right = (screen_width - window_width) // 2
+            position_down = screen_height - window_height - taskbar_height
+
+            # Ustawienie rozmiaru i pozycji okna
+            self.root.geometry(f"{window_width}x{window_height}+{position_right}+{position_down}")
+
+            # Usuń pasek tytułu w trybie "small"
+            self.root.overrideredirect(True)
+
+            # Przywrócenie początkowego układu
+            self.previous_label.pack_forget()
+            self.current_label.pack_forget()
+
+            self.previous_label.pack(expand=True, fill="both")  # Na górze
+            self.current_label.pack(expand=True, fill="both")  # Na dole
+
+        # Odświeżenie wyglądu okna
+        self.root.update_idletasks()
 
     def update_transparency(self, event=None):
         """Aktualizacja przezroczystości okna."""
