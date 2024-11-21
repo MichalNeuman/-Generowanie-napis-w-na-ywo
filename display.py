@@ -43,7 +43,7 @@ class TranscriptionApp:
         # Tworzymy dwa Label - jeden na poprzednią, a drugi na aktualną transkrypcję
         self.previous_label = Label(
             frame,
-            font=("Helvetica", 20),
+            font=("Roboto", 20),
             background="#000000",
             foreground="#AAAAAA",
             anchor="center",
@@ -54,7 +54,7 @@ class TranscriptionApp:
 
         self.current_label = Label(
             frame,
-            font=("Helvetica", 25),
+            font=("Roboto", 25),
             background="#000000",
             foreground="#FFFFFF",
             anchor="center",
@@ -81,7 +81,7 @@ class TranscriptionApp:
 
     def add_combobox_option(self, label, values, variable, command):
         """Dodaje opcję w panelu opcji z etykietą i ComboBoxem."""
-        option_label = Label(self.options_frame, text=f"{label}:", foreground="#DDDDDD", font=("Helvetica", 9))
+        option_label = Label(self.options_frame, text=f"{label}:", foreground="#DDDDDD", font=("Roboto", 9))
         option_label.pack(side="left", padx=5)
         option_combobox = Combobox(
             self.options_frame,
@@ -99,15 +99,9 @@ class TranscriptionApp:
         self.add_combobox_option("Text Size", [str(size) for size in range(10, 51, 5)], self.size_var,
                                  self.update_styles)
 
-        # Czcionka
-        self.font_var = StringVar(value="Helvetica")
-        self.add_combobox_option("Font", ["Helvetica", "Arial", "Courier", "Times New Roman"], self.font_var,
-                                 self.update_styles)
-
-        # Przezroczystość
-        #self.alpha_var = StringVar(value="90%")
-        #self.add_combobox_option("Transparency", [f"{i}%" for i in range(10, 101, 10)], self.alpha_var,
-                                 #self.update_transparency)
+        # Styl czcionki (normalny/italic)
+        self.style_var = StringVar(value="Normal")
+        self.add_combobox_option("Font Style", ["Normal", "Italic"], self.style_var, self.update_styles)
 
         # Tryb jasny/ciemny
         self.mode_var = StringVar(value="Dark")
@@ -117,6 +111,7 @@ class TranscriptionApp:
         self.weight_var = StringVar(value="Normal")
         self.add_combobox_option("Font Weight", ["Normal", "Bold"], self.weight_var, self.update_styles)
 
+        # Rozmiar ekranu
         self.screen_size = StringVar(value="Small")
         self.add_combobox_option("Screen Size", ["Small", "Fullscreen"], self.screen_size, self.update_styles)
 
@@ -172,11 +167,12 @@ class TranscriptionApp:
 
     def update_styles(self, event=None):
         """Aktualizacja czcionki, stylu i rozmiaru tekstu."""
-        font_name = self.font_var.get()
+        font_name = "Roboto"  # Czcionka zostaje stała
         font_size = int(self.size_var.get())
         font_weight = "bold" if self.weight_var.get() == "Bold" else "normal"
-        self.current_label.config(font=(font_name, font_size, font_weight))
-        self.previous_label.config(font=(font_name, font_size - 5, font_weight))
+        font_slant = "italic" if self.style_var.get() == "Italic" else "roman"
+        self.current_label.config(font=(font_name, font_size, font_weight, font_slant))
+        self.previous_label.config(font=(font_name, font_size - 5, font_weight, font_slant))
 
         # Obsługa zmiany rozmiaru okna na podstawie wyboru w Screen Size
         screen_size = self.screen_size.get()
