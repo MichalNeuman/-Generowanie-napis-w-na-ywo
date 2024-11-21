@@ -19,6 +19,13 @@ class TranscriptionApp:
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
 
+        #skróty klawiszowe
+        self.root.bind("<Control-b>", self.toggle_bold)
+        self.root.bind("<Control-i>", self.toggle_italic)
+        self.root.bind("<Control-=>", self.increase_font_size)
+        self.root.bind("<Control-minus>", self.decrease_font_size)
+        self.root.bind("<Control-f>", self.toggle_fullscreen)
+
         # Ustawiamy pozycję okna w dolnej części ekranu
         window_width = 800
         window_height = 200
@@ -226,6 +233,38 @@ class TranscriptionApp:
         """Aktualizacja przezroczystości okna."""
         alpha_percentage = int(self.alpha_var.get().strip('%'))
         self.root.attributes('-alpha', alpha_percentage / 100)
+
+    def toggle_bold(self, event=None):
+        """Przełącza pogrubienie tekstu."""
+        current_weight = self.weight_var.get()
+        self.weight_var.set("Normal" if current_weight == "Bold" else "Bold")
+        self.update_styles()
+
+    def toggle_italic(self, event=None):
+        """Przełącza kursywę tekstu."""
+        current_style = self.style_var.get()
+        self.style_var.set("Normal" if current_style == "Italic" else "Italic")
+        self.update_styles()
+
+    def increase_font_size(self, event=None):
+        """Zwiększa rozmiar tekstu."""
+        current_size = int(self.size_var.get())
+        if current_size < 50:  # Maksymalny rozmiar
+            self.size_var.set(str(current_size + 1))
+            self.update_styles()
+
+    def decrease_font_size(self, event=None):
+        """Zmniejsza rozmiar tekstu."""
+        current_size = int(self.size_var.get())
+        if current_size > 10:  # Minimalny rozmiar
+            self.size_var.set(str(current_size - 1))
+            self.update_styles()
+
+    def toggle_fullscreen(self, event=None):
+        """Przełącza tryb pełnoekranowy."""
+        current_size = self.screen_size.get()
+        self.screen_size.set("Small" if current_size == "Fullscreen" else "Fullscreen")
+        self.update_styles()
 
 
 def run_gui(queue):
