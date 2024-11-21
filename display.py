@@ -53,8 +53,9 @@ class TranscriptionApp:
             font=("Roboto", 20),
             background="#000000",
             foreground="#AAAAAA",
-            anchor="center",
-            wraplength=750,
+            anchor="w",  # Wyrównanie do lewej
+            justify="left",  # Tekst wyrównany w lewo
+            wraplength=750,  # Maksymalna szerokość w pikselach
             bootstyle="inverse"
         )
         self.previous_label.pack(expand=True, fill="both")
@@ -64,8 +65,9 @@ class TranscriptionApp:
             font=("Roboto", 25),
             background="#000000",
             foreground="#FFFFFF",
-            anchor="center",
-            wraplength=750,
+            anchor="w",  # Wyrównanie do lewej
+            justify="left",  # Tekst wyrównany w lewo
+            wraplength=750,  # Maksymalna szerokość w pikselach
             bootstyle="inverse"
         )
         self.current_label.pack(expand=True, fill="both")
@@ -164,12 +166,30 @@ class TranscriptionApp:
         self.root.after(10, lambda: self.animate_panel(target_y, step))
 
     def update_text(self):
-        """Aktualizacja tekstu co 0.5 sekundy."""
+        """Dodawanie słowo po słowie i czyszczenie, gdy zabraknie miejsca."""
+        max_chars = self.get_max_chars()  # Maksymalna liczba znaków na podstawie szerokości okna
         while not self.queue.empty():
             segment = self.queue.get()
             text = segment['text']
-            self.previous_label.config(text=self.current_label.cget("text"))
-            self.current_label.config(text=text)
+
+            # Rozdzielamy zdanie na słowa i przetwarzamy je jedno po drugim
+            words = text.split()
+            for word in words:
+                current_text = self.current_label.cget("text")
+                updated_text = (current_text + " " + word).strip() if current_text else word
+
+                # Jeśli tekst przekracza maksymalny limit znaków, zaczynamy od nowa
+                if len(updated_text) > max_chars:
+                    updated_text = word
+
+                # Aktualizacja etykiety z nowym tekstem
+                self.current_label.config(text=updated_text)
+
+                # Wymuszenie przerwy między wyświetlaniem słów
+                self.root.update()
+                self.root.after(300)  # 300 ms przerwy na każde słowo
+
+        # Zaplanuj kolejną aktualizację za 0.5 sekundy
         self.root.after(500, self.update_text)
 
     def update_styles(self, event=None):
@@ -265,6 +285,12 @@ class TranscriptionApp:
         current_size = self.screen_size.get()
         self.screen_size.set("Small" if current_size == "Fullscreen" else "Fullscreen")
         self.update_styles()
+
+    def get_max_chars(self):
+        """Oblicza maksymalną liczbę znaków na podstawie szerokości okna."""
+        window_width = self.root.winfo_width()
+        char_width = 10  # Przybliżona szerokość jednego znaku w pikselach
+        return window_width // char_width
 
 
 def run_gui(queue):
