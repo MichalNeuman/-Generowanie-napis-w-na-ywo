@@ -43,5 +43,5 @@ def start_server():
     """Uruchomienie serwera Flask-SocketIO."""
     from server import socketio, app  # Importuj serwer Flask-SocketIO z pliku `server.py`
     print("Uruchamiam serwer na http://localhost:5000...")
-    socketio.run(app, host="0.0.0.0", port=5000, use_reloader=False)
+    socketio.run(app, host="0.0.0.0", port=5000, use_reloader=False, allow_unsafe_werkzeug=True)
 
