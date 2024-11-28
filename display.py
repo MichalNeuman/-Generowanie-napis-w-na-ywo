@@ -1,10 +1,9 @@
+from tkinter import Text
 from ttkbootstrap import Style
 from ttkbootstrap.constants import *
 from ttkbootstrap.widgets import Frame, Label, Combobox
-from ttkbootstrap import StringVar  # Dodaj ten import
+from ttkbootstrap import StringVar
 from queue import Queue
-
-
 
 class TranscriptionApp:
     def __init__(self, root, queue):
@@ -19,13 +18,6 @@ class TranscriptionApp:
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
 
-        #skróty klawiszowe
-        self.root.bind("<Control-b>", self.toggle_bold)
-        self.root.bind("<Control-i>", self.toggle_italic)
-        self.root.bind("<Control-=>", self.increase_font_size)
-        self.root.bind("<Control-minus>", self.decrease_font_size)
-        self.root.bind("<Control-f>", self.toggle_fullscreen)
-
         # Ustawiamy pozycję okna w dolnej części ekranu
         window_width = 800
         window_height = 200
@@ -33,6 +25,14 @@ class TranscriptionApp:
         position_right = (screen_width // 2) - (window_width // 2)
         position_down = screen_height - window_height - taskbar_height
         self.root.geometry(f"{window_width}x{window_height}+{position_right}+{position_down}")
+
+        # skróty klawiszowe
+        self.root.bind("<Control-b>", self.toggle_bold)
+        self.root.bind("<Control-i>", self.toggle_italic)
+        self.root.bind("<Control-=>", self.increase_font_size)
+        self.root.bind("<Control-minus>", self.decrease_font_size)
+        self.root.bind("<Control-f>", self.toggle_fullscreen)
+        self.root.bind("<Control-m>", self.toggle_mode)
 
         # Ustawienie przezroczystości okna (wartość od 0.0 do 1.0)
         self.root.attributes('-alpha', 0.9)
@@ -47,30 +47,16 @@ class TranscriptionApp:
         frame = Frame(self.root, padding=10, style="TFrame")
         frame.pack(expand=True, fill="both")
 
-        # Tworzymy dwa Label - jeden na poprzednią, a drugi na aktualną transkrypcję
-        self.previous_label = Label(
-            frame,
-            font=("Roboto", 20),
-            background="#000000",
-            foreground="#AAAAAA",
-            anchor="w",  # Wyrównanie do lewej
-            justify="left",  # Tekst wyrównany w lewo
-            wraplength=750,  # Maksymalna szerokość w pikselach
-            bootstyle="inverse"
-        )
-        self.previous_label.pack(expand=True, fill="both")
-
-        self.current_label = Label(
+        # Tworzymy Text widget do wyświetlania transkrypcji
+        self.text_widget = Text(
             frame,
             font=("Roboto", 25),
             background="#000000",
             foreground="#FFFFFF",
-            anchor="w",  # Wyrównanie do lewej
-            justify="left",  # Tekst wyrównany w lewo
-            wraplength=750,  # Maksymalna szerokość w pikselach
-            bootstyle="inverse"
+            wrap="word",
+            state="disabled"
         )
-        self.current_label.pack(expand=True, fill="both")
+        self.text_widget.pack(expand=True, fill="both")
 
         # Panel opcji (początkowo ukryty, poza oknem)
         self.options_frame = Frame(self.root, padding=5, style="TFrame")
@@ -87,6 +73,28 @@ class TranscriptionApp:
 
         # Obsługa kliknięcia w okno
         self.root.bind("<Button-1>", self.handle_click)
+
+    def update_text(self):
+        """Dodawanie słowo po słowie i czyszczenie, gdy zabraknie miejsca."""
+        while not self.queue.empty():
+            segment = self.queue.get()
+            text = segment['text']
+
+            # Rozdzielamy zdanie na słowa i przetwarzamy je jedno po drugim
+            words = text.split()
+            for word in words:
+                self.text_widget.config(state="normal")
+                self.text_widget.insert("end", word + " ")
+                self.text_widget.config(state="disabled")
+                self.text_widget.see("end")  # Auto-scroll to the end
+
+                # Wymuszenie przerwy między wyświetlaniem słów
+                self.root.update()
+                self.root.after(300)  # 300 ms przerwy na każde słowo
+
+        # Zaplanuj kolejną aktualizację za 0.5 sekundy
+        self.root.after(500, self.update_text)
+
 
     def add_combobox_option(self, label, values, variable, command):
         """Dodaje opcję w panelu opcji z etykietą i ComboBoxem."""
@@ -124,15 +132,22 @@ class TranscriptionApp:
         self.screen_size = StringVar(value="Small")
         self.add_combobox_option("Screen Size", ["Small", "Fullscreen"], self.screen_size, self.update_styles)
 
+
+    def toggle_mode(self, event=None):
+        """Przełącza tryb jasny/ciemny."""
+        current_mode = self.mode_var.get()
+        self.mode_var.set("Light" if current_mode == "Dark" else "Dark")
+        self.update_mode()
+
     def update_mode(self, event=None):
         """Zmienia tryb na jasny lub ciemny."""
         mode = self.mode_var.get()
         if mode == "Light":
-            self.previous_label.config(background="#FFFFFF", foreground="#000000")
-            self.current_label.config(background="#FFFFFF", foreground="#000000")
+            self.text_widget.config(background="#FFFFFF", foreground="#000000")
+            self.root.attributes('-alpha', 0.8)  # Set transparency for light mode
         else:
-            self.previous_label.config(background="#000000", foreground="#AAAAAA")
-            self.current_label.config(background="#000000", foreground="#FFFFFF")
+            self.text_widget.config(background="#000000", foreground="#FFFFFF")
+            self.root.attributes('-alpha', 0.8)  # Set transparency for dark mode
 
     def handle_click(self, event):
         """Sprawdza, czy kliknięto poza opcje, aby schować pasek."""
@@ -165,43 +180,17 @@ class TranscriptionApp:
         self.options_frame.place(y=new_y)
         self.root.after(10, lambda: self.animate_panel(target_y, step))
 
-    def update_text(self):
-        """Dodawanie słowo po słowie i czyszczenie, gdy zabraknie miejsca."""
-        max_chars = self.get_max_chars()  # Maksymalna liczba znaków na podstawie szerokości okna
-        while not self.queue.empty():
-            segment = self.queue.get()
-            text = segment['text']
-
-            # Rozdzielamy zdanie na słowa i przetwarzamy je jedno po drugim
-            words = text.split()
-            for word in words:
-                current_text = self.current_label.cget("text")
-                updated_text = (current_text + " " + word).strip() if current_text else word
-
-                # Jeśli tekst przekracza maksymalny limit znaków, zaczynamy od nowa
-                if len(updated_text) > max_chars:
-                    updated_text = word
-
-                # Aktualizacja etykiety z nowym tekstem
-                self.current_label.config(text=updated_text)
-
-                # Wymuszenie przerwy między wyświetlaniem słów
-                self.root.update()
-                self.root.after(300)  # 300 ms przerwy na każde słowo
-
-        # Zaplanuj kolejną aktualizację za 0.5 sekundy
-        self.root.after(500, self.update_text)
-
     def update_styles(self, event=None):
-        """Aktualizacja czcionki, stylu i rozmiaru tekstu."""
-        font_name = "Roboto"  # Czcionka zostaje stała
+        """Update the font, style, and size of the text."""
+        font_name = "Roboto"  # Font remains constant
         font_size = int(self.size_var.get())
         font_weight = "bold" if self.weight_var.get() == "Bold" else "normal"
         font_slant = "italic" if self.style_var.get() == "Italic" else "roman"
-        self.current_label.config(font=(font_name, font_size, font_weight, font_slant))
-        self.previous_label.config(font=(font_name, font_size - 5, font_weight, font_slant))
 
-        # Obsługa zmiany rozmiaru okna na podstawie wyboru w Screen Size
+        # Update the Text widget's font
+        self.text_widget.config(font=(font_name, font_size, font_weight, font_slant))
+
+        # Handle window size change based on Screen Size selection
         screen_size = self.screen_size.get()
         if screen_size == "Fullscreen":
             self.toggle_screen_size(fullscreen=True)
@@ -209,44 +198,38 @@ class TranscriptionApp:
             self.toggle_screen_size(fullscreen=False)
 
     def toggle_screen_size(self, fullscreen):
-        """Zmienia rozmiar okna na pełny ekran lub początkowy."""
+        """Toggle between fullscreen and windowed mode."""
         if fullscreen:
-            # Przejście do trybu pełnoekranowego
-            self.root.overrideredirect(True)  # Usuń pasek tytułu
+            # Switch to fullscreen mode
+            self.root.overrideredirect(True)  # Remove title bar
             self.root.geometry(f"{self.root.winfo_screenwidth()}x{self.root.winfo_screenheight()}+0+0")
 
-            # Dostosowanie układu w trybie pełnoekranowym
-            self.previous_label.pack_forget()  # Usuń z obecnego układu
-            self.current_label.pack_forget()
-
-            self.previous_label.pack(expand=False, fill="x", pady=(50, 0))  # Trochę wyżej
-            self.current_label.pack(expand=True, fill="both", pady=(0, 50))  # Na środku
+            # Adjust layout in fullscreen mode
+            self.text_widget.pack_forget()  # Remove from current layout
+            self.text_widget.pack(expand=True, fill="both", pady=(50, 50))  # Centered with padding
         else:
-            # Powrót do początkowego rozmiaru
+            # Return to initial size
             window_width = 800
             window_height = 200
             screen_width = self.root.winfo_screenwidth()
             screen_height = self.root.winfo_screenheight()
             taskbar_height = 50
 
-            # Wyliczenie pozycji do wyśrodkowania
+            # Calculate position to center
             position_right = (screen_width - window_width) // 2
             position_down = screen_height - window_height - taskbar_height
 
-            # Ustawienie rozmiaru i pozycji okna
+            # Set window size and position
             self.root.geometry(f"{window_width}x{window_height}+{position_right}+{position_down}")
 
-            # Usuń pasek tytułu w trybie "small"
+            # Remove title bar in "small" mode
             self.root.overrideredirect(True)
 
-            # Przywrócenie początkowego układu
-            self.previous_label.pack_forget()
-            self.current_label.pack_forget()
+            # Restore initial layout
+            self.text_widget.pack_forget()
+            self.text_widget.pack(expand=True, fill="both")  # Fill the window
 
-            self.previous_label.pack(expand=True, fill="both")  # Na górze
-            self.current_label.pack(expand=True, fill="both")  # Na dole
-
-        # Odświeżenie wyglądu okna
+        # Refresh window appearance
         self.root.update_idletasks()
 
     def update_transparency(self, event=None):
