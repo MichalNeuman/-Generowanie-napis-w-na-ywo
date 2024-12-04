@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Transcription</title>
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <h1>Transkrypcja na żywo</h1>
+    <textarea id="transcription" placeholder="Tutaj pojawi się transkrypcja..."></textarea>
+    <p><em>Tekst jest edytowalny. Zmiany zostaną zapisane automatycznie.</em></p>
+
+    <script>
+                    const socket = io(); // Połącz z serwerem WebSocket
+
+            const textarea = document.getElementById("transcription");
+
+
+
+            // Funkcja do dodawania nowego tekstu bez zmiany pozycji kursora
+            function appendText(newText) {
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const isFocused = document.activeElement === textarea;
+
+                // Dodaj nową linię do istniejącego tekstu
+                textarea.value += newText + "\n";
+
+                // Przywróć pozycję kursora, jeśli textarea była w użyciu
+                if (isFocused) {
+                    textarea.selectionStart = start;
+                    textarea.selectionEnd = end;
+                }
+            }
+
+            // Nasłuchuj na zdarzenia 'transcription' i dodawaj nowy tekst
+            socket.on("transcription", (data) => {
+                console.log("Otrzymano nowe dane:", data.text);
+                appendText(data.text); // Dodaj tekst do `textarea`
+            });
+
+            // Wysyłaj zmiany wprowadzone przez użytkownika do serwera
+            textarea.addEventListener("input", (event) => {
+                const newText = event.target.value;
+                socket.emit("update_text", { text: newText });
+            });
+
+            // Zażądaj początkowego tekstu po nawiązaniu połączenia z serwerem
+            socket.emit("get_transcription");
+
+            socket.on("connect", () => {
+                console.log("Połączono z serwerem WebSocket!");
+            });
+
+    </script>
+</body>
+</html>
