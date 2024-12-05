@@ -5,123 +5,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live Transcription</title>
     <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
-    <style>
-         body {
-        font-family: 'Roboto', Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #f4f4f9;
-        color: #333;
-    }
-
-          h1 {
-        text-align: center;
-        color: #222;
-        margin-top: 20px;
-        font-size: 2rem;
-    }
-
-         .container {
-        max-width: 900px;
-        margin: 0 auto;
-        padding: 20px;
-        background-color: #ffffff;
-        border-radius: 10px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        margin-top: 30px;
-    }
-
-    textarea {
-        width: 96%;
-        height: 300px;
-        font-size: 1rem;
-        line-height: 1.5;
-        border: 1px solid #bbb;
-        border-radius: 6px;
-        padding: 15px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        resize: none;
-        background-color: #f9f9f9;
-        color: #333;
-    }
-
-    textarea:focus {
-        outline: none;
-        border-color: #0056b3;
-        box-shadow: 0 0 5px rgba(0, 86, 179, 0.5);
-    }
-
-        .line {
-            font-size: 16px;
-            line-height: 1.5;
-            margin: 5px 0;
-        }
-
-        .line.new {
-            animation: highlight 0.8s ease-in-out;
-        }
-
-        @keyframes highlight {
-            0% { background-color: #d1f7d1; }
-            100% { background-color: transparent; }
-        }
-
-        p {
-        text-align: center;
-        font-style: italic;
-        color: #555;
-        margin-top: 10px;
-        font-size: 0.9rem;
-    }
-
-    </style>
+    <link rel="stylesheet", href="../static/css/style.css">
 </head>
 <body>
-    <div class="container">
-        <div id="transcription-container">
-        <h1>Transkrypcja na żywo</h1>
-        <textarea id="transcription" placeholder="Tutaj pojawi się transkrypcja..."></textarea>
-        <p><em>Tekst jest edytowalny. Zmiany zostaną zapisane automatycznie.</em></p>
-            </div>
+<div id="page-wrapper">
+    <h1>Transkrypcja na żywo</h1>
+    <p><em>Tekst jest edytowalny. Zmiany zostaną zapisane automatycznie.</em></p>
+    <div id="transcription-container">
+        <div id="transcription-entries">
+            <!-- Transkrypcja zostanie tutaj dodana -->
+        </div>
     </div>
-    <script>
-       const socket = io(); // Połącz z serwerem WebSocket
+</div>
 
-const textarea = document.getElementById("transcription");
 
-if (textarea) {
-    // Funkcja do dodawania nowego tekstu do textarea bez nadpisywania istniejącego
-    function appendToTextarea(newText) {
-        // Dodaj nowy tekst z nową linią na końcu
-        textarea.value += newText + "\n";
 
-        // Przewiń na dół, aby wyświetlić najnowsze dane
-        textarea.scrollTop = textarea.scrollHeight;
+   <script>
+    const socket = io(); // Connect to the WebSocket server
+    const container = document.getElementById("transcription-entries");
+
+    // Function to add a new line to the transcription
+    function prependLine(newText) {
+        const newLine = document.createElement("div");
+        newLine.className = "line new"; // Add the `new` class for animation
+        newLine.textContent = newText;
+        newLine.contentEditable = "true"; // Allow editing
+        container.prepend(newLine);
+
+        // Remove the `new` class after the animation ends
+        setTimeout(() => {
+            newLine.classList.remove("new");
+        }, 800);
     }
 
-    // Nasłuchiwanie zdarzenia 'transcription' i dodawanie nowego tekstu do textarea
+    // Update text on the server after an edit
+    container.addEventListener("input", () => {
+        const updatedText = Array.from(container.children)
+            .map(line => line.textContent)
+            .join("\n");
+        socket.emit("update_text", { text: updatedText });
+    });
+
+    // Listen for 'transcription' event and add a new line
     socket.on("transcription", (data) => {
-        console.log("Otrzymano nowe dane:", data.text);
-        appendToTextarea(data.text); // Dodaj tekst do textarea
+        console.log("New data received:", data.text);
+        prependLine(data.text);
     });
 
-    // Wysyłanie zmian wprowadzonych przez użytkownika do serwera
-    textarea.addEventListener("input", (event) => {
-        const newText = event.target.value;
-        socket.emit("update_text", { text: newText });
+    // Listen for 'task_update' event and update all entries
+   socket.on("task_update", (data) => {
+    console.log("Received task update:", data.text);
+    container.innerHTML = ""; // Clear current entries
+    data.text.split("\n").forEach(line => {
+        if (line.trim()) prependLine(line); // Add each line
     });
+});
 
-    // Zażądaj początkowego tekstu od serwera
+    // Request initial transcription text when connected
     socket.emit("get_transcription");
 
-    // Obsługa połączenia z serwerem WebSocket
     socket.on("connect", () => {
-        console.log("Połączono z serwerem WebSocket!");
+        console.log("Connected to WebSocket server!");
     });
-} else {
-    console.error("Nie znaleziono elementu textarea z id 'transcription'!");
-}
+</script>
 
-    </script>
 </body>
 </html>

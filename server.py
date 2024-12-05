@@ -4,43 +4,47 @@ from flask_socketio import SocketIO, emit
 app = Flask(__name__)
 socketio = SocketIO(app)
 
-# Globalna zmienna do przechowywania transkrypcji
+# Global variable to store transcription
 current_text = ""
 
 
 @app.route("/")
 def index():
-    """Wyświetl główną stronę z transkrypcją."""
+    """Display the main page with live transcription."""
     return render_template("index.html")
 
 
 @socketio.on("update_text")
 def handle_update_text(data):
     """
-    Obsługa aktualizacji tekstu z klienta.
+    Handle text updates from a client.
+    Broadcast the updated text to all connected clients.
     """
     global current_text
     current_text = data["text"]
-    print(f"Zaktualizowano tekst: {current_text}")
+
+    print(f"Text updated: {current_text}")
+    # Broadcast the updated text to all connected clients
+    socketio.emit("task_update", {"text": current_text}, include_self=False)
 
 
 @socketio.on("get_transcription")
 def send_transcription():
     """
-    Wysyłanie bieżącej transkrypcji do klienta.
+    Send the current transcription to a client.
     """
     emit("transcription", {"text": current_text})
 
 
 def send_new_text(text):
-    """Wysyłanie nowego tekstu transkrypcji do klienta."""
+    """Send new transcription text to clients."""
     global current_text
-    current_text += text + "\n"  # Dodaj nowy fragment do pełnego tekstu
-    socketio.emit("transcription", {"text": text})  # Emituj tylko nowy fragment
+    current_text += text + "\n"  # Add the new fragment to the full text
+    socketio.emit("transcription", {"text": text}, to=None)  # Broadcast to all connected clients
+
 
 
 def start_server():
-    """Uruchomienie serwera Flask-SocketIO."""
-    print("Uruchamiam serwer na http://localhost:5000...")
+    """Start the Flask-SocketIO server."""
+    print("Starting server at http://localhost:5000...")
     socketio.run(app, host="0.0.0.0", port=5000, use_reloader=False, allow_unsafe_werkzeug=True)
-

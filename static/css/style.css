@@ -1,0 +1,91 @@
+/* style.css */
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    background-color: #f4f4f4;
+}
+
+#page-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px; /* Space between header, paragraph, and container */
+    margin-top: 20px; /* Slight offset from the top */
+}
+
+h1 {
+    margin: 0;
+    color: #0078D4;
+    font-size: 24px;
+    text-align: center;
+}
+
+p {
+    margin: 0;
+    font-size: 14px;
+    color: #666666;
+    text-align: center;
+}
+
+#transcription-container {
+    width: 100%;
+    max-width: 600px;
+    max-height: 500px; /* Set a fixed maximum height */
+    background-color: #ffffff;
+    border: 2px solid #0078D4;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    overflow-y: auto; /* Allow vertical scrolling for overflow content */
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+    padding: 10px; /* Add padding to prevent text from touching edges */
+}
+
+#transcription-entries {
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* Space between transcription lines */
+    width: 100%; /* Ensure it takes up the full width of the container */
+}
+
+.line {
+    font-size: 16px;
+    padding: 10px;
+    border-bottom: 1px solid #e0e0e0;
+    width: 97%;
+    text-align: center; /* Center align text inside the line */
+    transition: background-color 0.3s ease;
+    word-wrap: break-word; /* Force text to wrap to the next line */
+    word-break: break-word; /* Break long words if necessary */
+    white-space: normal; /* Allow wrapping */
+}
+
+.line:last-child {
+    border-bottom: none;
+}
+
+.line:hover {
+    background-color: #f0f8ff;
+}
+
+.line.new {
+    animation: fade-in 0.8s ease-in-out;
+    background-color: #e0f7fa;
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
