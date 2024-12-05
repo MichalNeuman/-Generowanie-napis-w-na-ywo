@@ -78,41 +78,50 @@
 </head>
 <body>
     <div class="container">
+        <div id="transcription-container">
         <h1>Transkrypcja na żywo</h1>
         <textarea id="transcription" placeholder="Tutaj pojawi się transkrypcja..."></textarea>
         <p><em>Tekst jest edytowalny. Zmiany zostaną zapisane automatycznie.</em></p>
+            </div>
     </div>
     <script>
-        const socket = io(); // Połącz z serwerem WebSocket
-        const container = document.getElementById("transcription-container");
+       const socket = io(); // Połącz z serwerem WebSocket
 
-        // Funkcja do dodawania nowej linii z animacją
-        function prependLine(newText) {
-            const newLine = document.createElement("div");
-            newLine.className = "line new"; // Dodaj klasę `new` dla animacji
-            newLine.textContent = newText;
+const textarea = document.getElementById("transcription");
 
-            // Dodaj linię na górę
-            container.prepend(newLine);
+if (textarea) {
+    // Funkcja do dodawania nowego tekstu do textarea bez nadpisywania istniejącego
+    function appendToTextarea(newText) {
+        // Dodaj nowy tekst z nową linią na końcu
+        textarea.value += newText + "\n";
 
-            // Usuń klasę `new` po zakończeniu animacji
-            setTimeout(() => {
-                newLine.classList.remove("new");
-            }, 800);
-        }
+        // Przewiń na dół, aby wyświetlić najnowsze dane
+        textarea.scrollTop = textarea.scrollHeight;
+    }
 
-        // Nasłuchuj na zdarzenia 'transcription' i dodawaj nową linię na górę
-        socket.on("transcription", (data) => {
-            console.log("Otrzymano nowe dane:", data.text);
-            prependLine(data.text); // Dodaj nowy tekst
-        });
+    // Nasłuchiwanie zdarzenia 'transcription' i dodawanie nowego tekstu do textarea
+    socket.on("transcription", (data) => {
+        console.log("Otrzymano nowe dane:", data.text);
+        appendToTextarea(data.text); // Dodaj tekst do textarea
+    });
 
-        // Zażądaj początkowego tekstu po nawiązaniu połączenia z serwerem
-        socket.emit("get_transcription");
+    // Wysyłanie zmian wprowadzonych przez użytkownika do serwera
+    textarea.addEventListener("input", (event) => {
+        const newText = event.target.value;
+        socket.emit("update_text", { text: newText });
+    });
 
-        socket.on("connect", () => {
-            console.log("Połączono z serwerem WebSocket!");
-        });
+    // Zażądaj początkowego tekstu od serwera
+    socket.emit("get_transcription");
+
+    // Obsługa połączenia z serwerem WebSocket
+    socket.on("connect", () => {
+        console.log("Połączono z serwerem WebSocket!");
+    });
+} else {
+    console.error("Nie znaleziono elementu textarea z id 'transcription'!");
+}
+
     </script>
 </body>
 </html>
