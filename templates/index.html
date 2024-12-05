@@ -9,62 +9,85 @@
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
+            background-color: #f9f9f9;
         }
-        textarea {
+
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+
+        #transcription-container {
             width: 100%;
-            height: 300px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
+            padding: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .line {
             font-size: 16px;
             line-height: 1.5;
+            margin: 5px 0;
+        }
+
+        .line.new {
+            animation: highlight 0.8s ease-in-out;
+        }
+
+        @keyframes highlight {
+            0% { background-color: #d1f7d1; }
+            100% { background-color: transparent; }
+        }
+
+        p {
+            text-align: center;
+            color: #555;
+            font-style: italic;
         }
     </style>
 </head>
 <body>
     <h1>Transkrypcja na żywo</h1>
-    <textarea id="transcription" placeholder="Tutaj pojawi się transkrypcja..."></textarea>
+    <div id="transcription-container">
+        <!-- Transkrypcja zostanie tutaj dodana -->
+    </div>
     <p><em>Tekst jest edytowalny. Zmiany zostaną zapisane automatycznie.</em></p>
 
     <script>
-                    const socket = io(); // Połącz z serwerem WebSocket
+        const socket = io(); // Połącz z serwerem WebSocket
+        const container = document.getElementById("transcription-container");
 
-            const textarea = document.getElementById("transcription");
+        // Funkcja do dodawania nowej linii z animacją
+        function prependLine(newText) {
+            const newLine = document.createElement("div");
+            newLine.className = "line new"; // Dodaj klasę `new` dla animacji
+            newLine.textContent = newText;
 
+            // Dodaj linię na górę
+            container.prepend(newLine);
 
+            // Usuń klasę `new` po zakończeniu animacji
+            setTimeout(() => {
+                newLine.classList.remove("new");
+            }, 800);
+        }
 
-            // Funkcja do dodawania nowego tekstu bez zmiany pozycji kursora
-            function appendText(newText) {
-                const start = textarea.selectionStart;
-                const end = textarea.selectionEnd;
-                const isFocused = document.activeElement === textarea;
+        // Nasłuchuj na zdarzenia 'transcription' i dodawaj nową linię na górę
+        socket.on("transcription", (data) => {
+            console.log("Otrzymano nowe dane:", data.text);
+            prependLine(data.text); // Dodaj nowy tekst
+        });
 
-                // Dodaj nową linię do istniejącego tekstu
-                textarea.value += newText + "\n";
+        // Zażądaj początkowego tekstu po nawiązaniu połączenia z serwerem
+        socket.emit("get_transcription");
 
-                // Przywróć pozycję kursora, jeśli textarea była w użyciu
-                if (isFocused) {
-                    textarea.selectionStart = start;
-                    textarea.selectionEnd = end;
-                }
-            }
-
-            // Nasłuchuj na zdarzenia 'transcription' i dodawaj nowy tekst
-            socket.on("transcription", (data) => {
-                console.log("Otrzymano nowe dane:", data.text);
-                appendText(data.text); // Dodaj tekst do `textarea`
-            });
-
-            // Wysyłaj zmiany wprowadzone przez użytkownika do serwera
-            textarea.addEventListener("input", (event) => {
-                const newText = event.target.value;
-                socket.emit("update_text", { text: newText });
-            });
-
-            // Zażądaj początkowego tekstu po nawiązaniu połączenia z serwerem
-            socket.emit("get_transcription");
-
-            socket.on("connect", () => {
-                console.log("Połączono z serwerem WebSocket!");
-            });
-
+        socket.on("connect", () => {
+            console.log("Połączono z serwerem WebSocket!");
+        });
     </script>
 </body>
 </html>
