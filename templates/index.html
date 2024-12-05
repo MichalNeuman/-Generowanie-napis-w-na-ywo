@@ -66,8 +66,7 @@
             const newLine = document.createElement("div");
             newLine.className = "line new"; // Dodaj klasę `new` dla animacji
             newLine.textContent = newText;
-
-            // Dodaj linię na górę
+            newLine.contentEditable = "true"; // Umożliwia edycję
             container.prepend(newLine);
 
             // Usuń klasę `new` po zakończeniu animacji
@@ -75,6 +74,14 @@
                 newLine.classList.remove("new");
             }, 800);
         }
+
+        // Aktualizacja tekstu na serwerze po edycji
+        container.addEventListener("input", () => {
+            const updatedText = Array.from(container.children)
+                .map(line => line.textContent)
+                .join("\n");
+            socket.emit("update_text", { text: updatedText });
+        });
 
         // Nasłuchuj na zdarzenia 'transcription' i dodawaj nową linię na górę
         socket.on("transcription", (data) => {
