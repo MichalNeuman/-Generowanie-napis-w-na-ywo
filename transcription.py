@@ -7,7 +7,7 @@ from server import send_new_text
 
 # Configuration
 RATE = 16000
-CHUNK_DURATION = 3
+CHUNK_DURATION = 6
 CHUNK = int(RATE * CHUNK_DURATION)
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
