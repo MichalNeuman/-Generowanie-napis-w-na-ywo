@@ -6,27 +6,50 @@
     <title>Live Transcription</title>
     <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f9f9f9;
-        }
+         body {
+        font-family: 'Roboto', Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f9;
+        color: #333;
+    }
 
-        h1 {
-            color: #333;
-            text-align: center;
-        }
+          h1 {
+        text-align: center;
+        color: #222;
+        margin-top: 20px;
+        font-size: 2rem;
+    }
 
-        #transcription-container {
-            width: 100%;
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #fff;
-            padding: 10px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
+         .container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        margin-top: 30px;
+    }
+
+    textarea {
+        width: 96%;
+        height: 300px;
+        font-size: 1rem;
+        line-height: 1.5;
+        border: 1px solid #bbb;
+        border-radius: 6px;
+        padding: 15px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        resize: none;
+        background-color: #f9f9f9;
+        color: #333;
+    }
+
+    textarea:focus {
+        outline: none;
+        border-color: #0056b3;
+        box-shadow: 0 0 5px rgba(0, 86, 179, 0.5);
+    }
 
         .line {
             font-size: 16px;
@@ -44,19 +67,21 @@
         }
 
         p {
-            text-align: center;
-            color: #555;
-            font-style: italic;
-        }
+        text-align: center;
+        font-style: italic;
+        color: #555;
+        margin-top: 10px;
+        font-size: 0.9rem;
+    }
+
     </style>
 </head>
 <body>
-    <h1>Transkrypcja na żywo</h1>
-    <div id="transcription-container">
-        <!-- Transkrypcja zostanie tutaj dodana -->
+    <div class="container">
+        <h1>Transkrypcja na żywo</h1>
+        <textarea id="transcription" placeholder="Tutaj pojawi się transkrypcja..."></textarea>
+        <p><em>Tekst jest edytowalny. Zmiany zostaną zapisane automatycznie.</em></p>
     </div>
-    <p><em>Tekst jest edytowalny. Zmiany zostaną zapisane automatycznie.</em></p>
-
     <script>
         const socket = io(); // Połącz z serwerem WebSocket
         const container = document.getElementById("transcription-container");
