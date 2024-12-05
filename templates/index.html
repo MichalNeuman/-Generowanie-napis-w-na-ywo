@@ -18,56 +18,89 @@
     </div>
 </div>
 
-
-
-   <script>
-    const socket = io(); // Connect to the WebSocket server
+<script>
+    const socket = io(); // Połącz z serwerem WebSocket
     const container = document.getElementById("transcription-entries");
 
-    // Function to add a new line to the transcription
-    function prependLine(newText) {
-        const newLine = document.createElement("div");
-        newLine.className = "line new"; // Add the `new` class for animation
-        newLine.textContent = newText;
-        newLine.contentEditable = "true"; // Allow editing
-        container.prepend(newLine);
+    // Funkcja do utworzenia lub aktualizacji wiersza
+    function createOrUpdateLine(index, text) {
+        let existingLine = container.querySelector(`[data-index="${index}"]`);
+        if (existingLine) {
+            // Aktualizacja istniejącego wiersza
+            existingLine.textContent = text;
+            existingLine.classList.add("updated"); // Dodanie klasy do animacji aktualizacji
+            setTimeout(() => existingLine.classList.remove("updated"), 800);
+        } else {
+            // Utworzenie nowego wiersza z animacją
+            const newLine = createAnimatedLine(index, text);
+            container.prepend(newLine);
 
-        // Remove the `new` class after the animation ends
-        setTimeout(() => {
-            newLine.classList.remove("new");
-        }, 800);
+            // Aktualizacja indeksów dla wszystkich poniższych wierszy
+            const lines = container.querySelectorAll(".line");
+            lines.forEach((line, i) => {
+                line.dataset.index = i;
+            });
+        }
     }
 
-    // Update text on the server after an edit
-    container.addEventListener("input", () => {
-        const updatedText = Array.from(container.children)
-            .map(line => line.textContent)
-            .join("\n");
-        socket.emit("update_text", { text: updatedText });
+    // Funkcja do utworzenia nowego wiersza z animacją
+    function createAnimatedLine(index, text) {
+        const line = document.createElement("div");
+        line.className = "line new"; // Dodanie klasy `new` dla animacji
+        line.textContent = text;
+        line.contentEditable = "true"; // Umożliwienie edycji
+        line.dataset.index = index; // Przechowywanie indeksu wiersza
+
+        // Usunięcie klasy animacji po jej zakończeniu
+        setTimeout(() => {
+            line.classList.remove("new");
+        }, 800);
+
+        return line;
+    }
+
+    // Nasłuchiwanie na zdarzenie 'line_update', aby dodawać lub aktualizować wiersze
+    socket.on("line_update", (data) => {
+        console.log(`Otrzymano aktualizację dla wiersza ${data.index}: ${data.text}`);
+        createOrUpdateLine(data.index, data.text);
     });
 
-    // Listen for 'transcription' event and add a new line
-    socket.on("transcription", (data) => {
-        console.log("New data received:", data.text);
-        prependLine(data.text);
+    // Obsługa edycji i wysyłanie aktualizacji do serwera
+    container.addEventListener("input", (event) => {
+        const target = event.target;
+        if (target.classList.contains("line")) {
+            const index = parseInt(target.dataset.index, 10);
+            const text = target.textContent.trim();
+            socket.emit("update_text", { index: index, text: text });
+        }
     });
 
-    // Listen for 'task_update' event and update all entries
-   socket.on("task_update", (data) => {
-    console.log("Received task update:", data.text);
-    container.innerHTML = ""; // Clear current entries
-    data.text.split("\n").forEach(line => {
-        if (line.trim()) prependLine(line); // Add each line
-    });
-});
-
-    // Request initial transcription text when connected
+    // Wysłanie żądania o pełną transkrypcję po połączeniu
     socket.emit("get_transcription");
 
+    // Wypełnianie kontenera pełną transkrypcją po inicjalizacji
+    socket.on("transcription", (data) => {
+        console.log("Otrzymano pełną transkrypcję:", data.text);
+        container.innerHTML = ""; // Usunięcie istniejących wierszy
+        const lines = data.text.split("\n");
+        lines.forEach((line, index) => {
+            if (line.trim()) {
+                const newLine = createAnimatedLine(index, line.trim());
+                container.appendChild(newLine);
+            }
+        });
+    });
+
     socket.on("connect", () => {
-        console.log("Connected to WebSocket server!");
+        console.log("Połączono z serwerem WebSocket!");
     });
 </script>
+
+
+
+
+
+
 
 </body>
 </html>
