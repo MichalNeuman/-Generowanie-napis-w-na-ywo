@@ -4,11 +4,15 @@ from ttkbootstrap.constants import *
 from ttkbootstrap.widgets import Frame, Label, Combobox
 from ttkbootstrap import StringVar
 from queue import Queue
+import re
+import time
 
 class TranscriptionApp:
     def __init__(self, root, queue):
         self.root = root
         self.queue = queue
+        self.text_widget = None
+        self.last_timestamp = None
         self.root.title("Transkrypcja")
 
         # Konfiguracja stylu ttkbootstrap
@@ -83,22 +87,33 @@ class TranscriptionApp:
         while not self.queue.empty():
             segment = self.queue.get()
             text = segment['text']
+            timestamp = segment.get('timestamp', time.time())
 
-            # Rozdzielamy zdanie na słowa i przetwarzamy je jedno po drugim
-            words = text.split()
-            for word in words:
+            if self.last_timestamp is not None and (timestamp - self.last_timestamp) > 1:
                 self.text_widget.config(state="normal")
-                self.text_widget.insert("end", word + " ")
+                self.text_widget.insert("end", "\n")
                 self.text_widget.config(state="disabled")
-                self.text_widget.see("end")  # Auto-scroll to the end
 
-                # Wymuszenie przerwy między wyświetlaniem słów
-                self.root.update()
-                self.root.after(300)  # 300 ms przerwy na każde słowo
+            words = text.split()
+
+            self.text_widget.config(state="normal")
+            for word in words:
+                self.text_widget.insert("end", word + " ")
+                self.text_widget.see("end")
+                self.root.update_idletasks()
+                time.sleep(0.1)
+
+            self.text_widget.config(state="disabled")
+
+            self.last_timestamp = timestamp
 
         # Zaplanuj kolejną aktualizację za 0.5 sekundy
         self.root.after(500, self.update_text)
 
+    def split_text_into_lines(self, text):
+        sentence_endings = re.compile(r'(?<=[.!?]) +')
+        lines = sentence_endings.split(text)
+        return '\n'.join(lines)
 
     def add_combobox_option(self, label, values, variable, command):
         """Dodaje opcję w panelu opcji z etykietą i ComboBoxem."""
@@ -281,16 +296,18 @@ class TranscriptionApp:
 
     def start_move(self, event):
         """Rozpoczyna przesuwanie okna."""
-        self.x = event.x
-        self.y = event.y
+        if self.screen_size.get() != "Fullscreen":
+            self.x = event.x
+            self.y = event.y
 
     def do_move(self, event):
         """Przesuwa okno."""
-        deltax = event.x - self.x
-        deltay = event.y - self.y
-        x = self.root.winfo_x() + deltax
-        y = self.root.winfo_y() + deltay
-        self.root.geometry(f"+{x}+{y}")
+        if self.screen_size.get() != "Fullscreen":
+            deltax = event.x - self.x
+            deltay = event.y - self.y
+            x = self.root.winfo_x() + deltax
+            y = self.root.winfo_y() + deltay
+            self.root.geometry(f"+{x}+{y}")
 
 def run_gui(queue):
     root = Style(theme="darkly").master  # Ustawienie głównego okna z ttkbootstrap
