@@ -72,7 +72,11 @@ class TranscriptionApp:
         self.options_visible = False
 
         # Obsługa kliknięcia w okno
-        self.root.bind("<Button-1>", self.handle_click)
+        self.root.bind("<Button-3>", self.handle_click)
+
+        # obsługa przesuwania okna
+        self.root.bind("<Button-1>", self.start_move)
+        self.root.bind("<B1-Motion>", self.do_move)
 
     def update_text(self):
         """Dodawanie słowo po słowie i czyszczenie, gdy zabraknie miejsca."""
@@ -275,6 +279,18 @@ class TranscriptionApp:
         char_width = 10  # Przybliżona szerokość jednego znaku w pikselach
         return window_width // char_width
 
+    def start_move(self, event):
+        """Rozpoczyna przesuwanie okna."""
+        self.x = event.x
+        self.y = event.y
+
+    def do_move(self, event):
+        """Przesuwa okno."""
+        deltax = event.x - self.x
+        deltay = event.y - self.y
+        x = self.root.winfo_x() + deltax
+        y = self.root.winfo_y() + deltay
+        self.root.geometry(f"+{x}+{y}")
 
 def run_gui(queue):
     root = Style(theme="darkly").master  # Ustawienie głównego okna z ttkbootstrap
