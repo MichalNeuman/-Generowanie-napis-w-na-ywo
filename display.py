@@ -58,7 +58,10 @@ class TranscriptionApp:
             background="#000000",
             foreground="#FFFFFF",
             wrap="word",
-            state="disabled"
+            state="disabled",
+            spacing1=10,
+            spacing2=10,
+            spacing3=10
         )
         self.text_widget.pack(expand=True, fill="both")
 
