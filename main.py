@@ -5,7 +5,6 @@ from server import start_server
 from transcription import transcribe
 from display import run_gui
 
-
 def main_menu():
     # Główne okno menu
     root = tk.Tk()
@@ -16,13 +15,10 @@ def main_menu():
     gui_var = tk.BooleanVar()
 
     def zatwierdz_wybor():
-        # Zamyka główne okno po kliknięciu Zatwierdź
-        root.destroy()
-
         # Transkrypcja zawsze się uruchamia
         queue = Queue()
         transkrypcja_thread = Thread(target=transcribe, args=(queue,))
-        transkrypcja_thread.daemon = False
+        transkrypcja_thread.daemon = True
         transkrypcja_thread.start()
         print("Transkrypcja została uruchomiona!")
 
@@ -33,12 +29,11 @@ def main_menu():
             server_thread.start()
             print("Serwer został uruchomiony!")
 
-        # Uruchamiamy GUI, jeśli zaznaczono
+        # Zamykamy główne okno i uruchamiamy GUI, jeśli zaznaczono
         if gui_var.get():
-            gui_thread = Thread(target=run_gui, args=(queue,))
-            gui_thread.daemon = True
-            gui_thread.start()
-            print("GUI zostało uruchomione!")
+            root.destroy()  # Zamknij okno główne
+            print("Uruchamiam GUI...")
+            run_gui(queue)  # Uruchom GUI w tym samym wątku
 
     def zamknij_aplikacje():
         # Zamyka aplikację
