@@ -5,6 +5,7 @@ from faster_whisper import WhisperModel
 import torch
 from server import send_new_text
 
+
 # Configuration
 RATE = 16000
 CHUNK_DURATION = 6
@@ -21,7 +22,6 @@ stream = audio.open(format=pyaudio.paInt16, channels=1, rate=RATE, input=True, f
 
 def transcribe(queue):
     """Continuously record audio chunks and transcribe them."""
-    segments_list = []
     print("Recording and transcribing...")
     try:
         start_time = time.time()
@@ -41,19 +41,15 @@ def transcribe(queue):
                     "end": f"{relative_segment_end:.2f}s",
                     "text": segment.text
                 }
-                segments_list.append(segment_info)
 
-                queue.put(segment_info)
+                queue.put(segment_info)  # Dodaj segment do kolejki
 
                 print(f"[{relative_segment_start:.2f}s -> {relative_segment_end:.2f}s] {segment.text}")
                 segment_start_time += segment.end - segment.start
                 send_new_text(segment.text)
     except KeyboardInterrupt:
         print("\nTranscription stopped.")
-
     finally:
         stream.stop_stream()
         stream.close()
         audio.terminate()
-
-    return segments_list

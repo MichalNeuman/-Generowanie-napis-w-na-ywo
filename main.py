@@ -4,6 +4,7 @@ from queue import Queue
 from server import start_server
 from transcription import transcribe
 from display import run_gui
+from utils import save_transcription
 
 def main_menu():
     # Główne okno menu
@@ -14,9 +15,12 @@ def main_menu():
     server_var = tk.BooleanVar()
     gui_var = tk.BooleanVar()
 
+    # Tworzymy globalną kolejkę
+    global queue
+    queue = Queue()
+
     def zatwierdz_wybor():
         # Transkrypcja zawsze się uruchamia
-        queue = Queue()
         transkrypcja_thread = Thread(target=transcribe, args=(queue,))
         transkrypcja_thread.daemon = True
         transkrypcja_thread.start()
@@ -36,6 +40,15 @@ def main_menu():
             run_gui(queue)  # Uruchom GUI w tym samym wątku
 
     def zamknij_aplikacje():
+        # Pobieranie segmentów z kolejki
+        segments_list = []
+        while not queue.empty():
+            segments_list.append(queue.get())
+
+        # Zapisanie transkrypcji do pliku
+        save_transcription(segments_list, "transcription.srt")
+        print("Transkrypcja zapisana do pliku transcription.srt.")
+
         # Zamyka aplikację
         root.destroy()
         print("Aplikacja została zamknięta.")
@@ -54,6 +67,6 @@ def main_menu():
     # Uruchomienie pętli głównej Tkintera
     root.mainloop()
 
-
 if __name__ == "__main__":
     main_menu()
+
