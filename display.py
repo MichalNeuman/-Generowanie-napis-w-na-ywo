@@ -119,18 +119,29 @@ class TranscriptionApp:
         return '\n'.join(lines)
 
     def add_combobox_option(self, label, values, variable, command):
-        """Dodaje opcję w panelu opcji z etykietą i ComboBoxem."""
-        option_label = Label(self.options_frame, text=f"{label}:", foreground="#DDDDDD", font=("Roboto", 9))
-        option_label.pack(side="left", padx=5)
+        """Dodaje ComboBox z etykietą jako placeholderem wewnątrz."""
+
+        def on_focus_in(event):
+            if option_combobox.get() == label:  # Jeśli tekst to placeholder, wyczyść
+                option_combobox.set('')
+
+        def on_focus_out(event):
+            if not option_combobox.get():  # Jeśli pole jest puste, przywróć placeholder
+                option_combobox.set(label)
+
+        # Tworzymy Combobox
         option_combobox = Combobox(
             self.options_frame,
             textvariable=variable,
             values=values,
             state="readonly",
-            width=10
+            width=15
         )
-        option_combobox.pack(side="left", padx=5)
-        option_combobox.bind("<<ComboboxSelected>>", command)
+        option_combobox.set(label)  # Ustawienie placeholdera (etykiety jako domyślnej wartości)
+        option_combobox.pack(side="left", padx=10, pady=5)
+        option_combobox.bind("<<ComboboxSelected>>", command)  # Obsługa wyboru
+        option_combobox.bind("<FocusIn>", on_focus_in)  # Obsługa wejścia w pole
+        option_combobox.bind("<FocusOut>", on_focus_out)  # Obsługa wyjścia z pola
 
     def init_combobox_options(self):
         # Rozmiar tekstu
