@@ -212,8 +212,8 @@ class TranscriptionApp:
 
     def update_styles(self, event=None):
         """Update the font, style, and size of the text."""
-        font_name = "Roboto"  # Font remains constant
-        font_size = int(self.size_var.get())
+        font_name = "Helvetica Neue"  # Font remains constant
+        font_size = 20
         font_weight = "bold" if self.weight_var.get() == "Bold" else "normal"
         font_slant = "italic" if self.style_var.get() == "Italic" else "roman"
 
