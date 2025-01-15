@@ -16,7 +16,7 @@ class TranscriptionApp:
         self.root.title("Transkrypcja")
 
         # Konfiguracja stylu ttkbootstrap
-        style = Style(theme="darkly")
+        self.root.style = Style(theme="darkly")
 
         # Pobieramy wymiary ekranu
         screen_width = self.root.winfo_screenwidth()
@@ -154,7 +154,7 @@ class TranscriptionApp:
         self.add_combobox_option("Font Style", ["Normal", "Italic"], self.style_var, self.update_styles)
 
         # Tryb jasny/ciemny
-        self.mode_var = StringVar(value="Dark")
+        self.mode_var = StringVar(value="Light")
         self.add_combobox_option("Mode", ["Light", "Dark"], self.mode_var, self.update_mode)
 
         # Styl czcionki (normalny/pogrubiony)
@@ -173,15 +173,12 @@ class TranscriptionApp:
         self.update_mode()
 
     def update_mode(self, event=None):
-        """Zmienia tryb na jasny lub ciemny."""
+        """Update the theme to 'darkly' or 'yeti'."""
         mode = self.mode_var.get()
         if mode == "Light":
-            self.text_widget.config(background="#FFFFFF", foreground="#000000")
-            self.root.attributes('-alpha', 0.8)  # Set transparency for light mode
+            self.root.style.theme_use("yeti")
         else:
-            self.text_widget.config(background="#000000", foreground="#FFFFFF")
-            self.root.attributes('-alpha', 0.8)  # Set transparency for dark mode
-
+            self.root.style.theme_use("darkly")
     def handle_click(self, event):
         """Sprawdza, czy kliknięto poza opcje, aby schować pasek."""
         if not self.options_frame.winfo_ismapped():
