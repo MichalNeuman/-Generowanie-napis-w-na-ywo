@@ -85,6 +85,7 @@ class TranscriptionApp:
         self.root.bind("<Button-1>", self.start_move)
         self.root.bind("<B1-Motion>", self.do_move)
 
+
     def update_text(self):
         """Dodawanie słowo po słowie i czyszczenie, gdy zabraknie miejsca."""
         while not self.queue.empty():
@@ -211,21 +212,18 @@ class TranscriptionApp:
         self.root.after(10, lambda: self.animate_panel(target_y, step))
 
     def update_styles(self, event=None):
-        """Update the font, style, and size of the text."""
-        font_name = "Helvetica Neue"  # Font remains constant
-        font_size = 20
-        font_weight = "bold" if self.weight_var.get() == "Bold" else "normal"
-        font_slant = "italic" if self.style_var.get() == "Italic" else "roman"
+        """Aktualizuje styl tekstu w oparciu o wybrane opcje."""
+        font_size = int(self.size_var.get())  # Rozmiar czcionki
+        font_style = self.style_var.get().lower()  # Styl (italic/normal)
+        font_weight = "bold" if self.weight_var.get().lower() == "bold" else "normal"  # Pogrubienie
 
-        # Update the Text widget's font
-        self.text_widget.config(font=(font_name, font_size, font_weight, font_slant))
+        # Kompozycja stylu
+        font_family = "Roboto"
+        font_config = (font_family, font_size, font_style if font_style == "italic" else font_weight)
 
-        # Handle window size change based on Screen Size selection
-        screen_size = self.screen_size.get()
-        if screen_size == "Fullscreen":
-            self.toggle_screen_size(fullscreen=True)
-        else:
-            self.toggle_screen_size(fullscreen=False)
+        # Aktualizacja stylu czcionki w widżecie tekstowym
+        self.text_widget.config(font=font_config)
+
 
     def toggle_screen_size(self, fullscreen):
         """Toggle between fullscreen and windowed mode."""
