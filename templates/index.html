@@ -17,8 +17,43 @@
         </div>
     </div>
 </div>
+<div id="theme-buttons">
+    <button onclick="setTheme('yellow')">Żółty motyw</button>
+    <button onclick="setTheme('white')">Biały motyw</button>
+    <button onclick="setTheme('default')">Domyślny motyw</button>
+</div>
+
 
 <script>
+
+      function setTheme(theme) {
+        const body = document.body;
+        const title = document.querySelector("h1");
+        const intro = document.querySelector("p");
+        const lines = document.querySelectorAll(".line");
+
+        // Reset classes
+        body.className = "";
+
+        // Apply theme-specific styles
+        if (theme === 'yellow') {
+            body.classList.add('yellow-theme');
+            title.style.color = "#ffff00";
+            intro.style.color = "#ffff00";
+            lines.forEach(line => (line.style.color = "#ffff00"));
+        } else if (theme === 'white') {
+            body.classList.add('white-theme');
+            title.style.color = "#ffffff";
+            intro.style.color = "#ffffff";
+            lines.forEach(line => (line.style.color = "#ffffff"));
+        } else {
+            // Default theme
+            title.style.color = "";
+            intro.style.color = "";
+            lines.forEach(line => (line.style.color = ""));
+        }
+    }
+
     const socket = io(); // Połącz z serwerem WebSocket
     const container = document.getElementById("transcription-entries");
 
@@ -44,12 +79,25 @@
     }
 
     // Funkcja do utworzenia nowego wiersza z animacją
-    function createAnimatedLine(index, text) {
+     function createAnimatedLine(index, text) {
         const line = document.createElement("div");
         line.className = "line new"; // Dodanie klasy `new` dla animacji
         line.textContent = text;
         line.contentEditable = "true"; // Umożliwienie edycji
         line.dataset.index = index; // Przechowywanie indeksu wiersza
+
+        // Dodanie klasy motywu
+        const currentTheme = document.body.className;
+        if (currentTheme === "yellow-theme") {
+            line.classList.add("yellow-theme");
+            line.style.color = "#ffff00";
+        } else if (currentTheme === "white-theme") {
+            line.classList.add("white-theme");
+            line.style.color = "#ffffff";
+        } else {
+            line.classList.add("default-theme");
+            line.style.color = ""; // Domyślny kolor
+        }
 
         // Usunięcie klasy animacji po jej zakończeniu
         setTimeout(() => {

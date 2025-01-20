@@ -79,23 +79,146 @@ p {
     animation: fadeInHighlight 0.8s ease-in-out;
     background-color: #fffae0;
 }
-
-@keyframes fadeInHighlight {
-    from {
-        background-color: #fff9c4;
-    }
-    to {
-        background-color: #ffffff;
-    }
+/* Domyślny styl przycisków */
+button {
+    padding: 10px 20px;
+    font-size: 14px;
+    border: 2px solid #0078D4;
+    background-color: #ffffff;
+    color: #0078D4;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
 }
 
-@keyframes fadeInDown {
+/* Domyślny styl przycisków */
+button {
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 14px;
+    border: 2px solid #0078D4;
+    background-color: transparent;
+    color: #0078D4;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+button:hover {
+    background-color: rgba(0, 120, 212, 0.2); /* Delikatne niebieskie podświetlenie */
+}
+
+/* Styl przycisków w motywie żółtym */
+body.yellow-theme button {
+    border-color: #ffff00;
+    color: #ffff00;
+}
+
+body.yellow-theme button:hover {
+    background-color: rgba(255, 255, 0, 0.2); /* Jasnożółte podświetlenie */
+}
+
+/* Styl przycisków w motywie białym */
+body.white-theme button {
+    border-color: #ffffff;
+    color: #ffffff;
+}
+
+body.white-theme button:hover {
+    background-color: rgba(255, 255, 255, 0.2); /* Jasnoszare podświetlenie */
+}
+
+
+/* Theme styles */
+body.yellow-theme {
+    background-color: #000000;
+    color: #ffff00;
+}
+
+body.yellow-theme #transcription-container {
+    background-color: #000000;
+    border-color: #ffff00;
+}
+
+body.white-theme {
+    background-color: #000000;
+    color: #ffffff;
+}
+
+body.white-theme #transcription-container {
+    background-color: #000000;
+    border-color: #ffffff;
+}
+/* Animacje dla nowo pojawiających się linii */
+.line.new.default-theme {
+    animation: fadeInDownDefault 0.8s ease-in-out;
+    background-color: #e0f7fa; /* Niebieski dla domyślnego stylu */
+}
+
+.line.new.yellow-theme {
+    animation: fadeInDownYellow 0.8s ease-in-out;
+    background-color: #ffff99; /* Żółty dla żółtego stylu */
+}
+
+.line.new.white-theme {
+    animation: fadeInDownWhite 0.8s ease-in-out;
+    background-color: #cccccc; /* Jasnoszary dla białego stylu */
+}
+/* Podświetlenie w stylu żółtym */
+body.yellow-theme .line:hover {
+    background-color: rgba(255, 255, 0, 0.2); /* Jasnożółty z przezroczystością */
+}
+
+/* Podświetlenie w stylu białym */
+body.white-theme .line:hover {
+    background-color: rgba(255, 255, 255, 0.2); /* Jasnoszary z przezroczystością */
+}
+/* Żółta linia oddzielająca wiersze w stylu yellow-theme */
+body.yellow-theme .line {
+    border-bottom: 1px solid #ffff00; /* Żółta linia */
+}
+
+/* Usuń linię w ostatnim wierszu dla spójności */
+body.yellow-theme .line:last-child {
+    border-bottom: none;
+}
+
+/* Kluczowe klatki dla animacji */
+@keyframes fadeInDownDefault {
     from {
         opacity: 0;
         transform: translateY(-20px);
+        background-color: #b3e5fc;
     }
     to {
         opacity: 1;
         transform: translateY(0);
+        background-color: #e0f7fa;
+    }
+}
+
+@keyframes fadeInDownYellow {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+        background-color: #ffff00;
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        background-color: rgba(255, 255, 0, 0.2);
+    }
+}
+
+@keyframes fadeInDownWhite {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+        background-color: #dddddd;
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        background-color: #cccccc;
     }
 }
