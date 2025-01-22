@@ -37,6 +37,7 @@ class TranscriptionApp:
         self.root.bind("<Control-minus>", self.decrease_font_size)
         self.root.bind("<Control-f>", self.toggle_fullscreen)
         self.root.bind("<Control-m>", self.toggle_mode)
+        self.root.bind("<Control-d>", self.toggle_color_mode)
 
         # Ustawienie przezroczystości okna (wartość od 0.0 do 1.0)
         self.root.attributes('-alpha', 0.9)
@@ -177,6 +178,12 @@ class TranscriptionApp:
             self.text_widget.config(background="#000000", foreground="#FFFF00")
         elif mode == "Tryb biały":
             self.text_widget.config(background="#000000", foreground="#FFFFFF")
+
+    def toggle_color_mode(self, event=None):
+        """Przełącza tryb daltonisty."""
+        current_mode = self.color_mode_var.get()
+        self.color_mode_var.set("Tryb biały" if current_mode == "Tryb żółty" else "Tryb żółty")
+        self.update_color_mode()
 
     def toggle_mode(self, event=None):
         """Przełącza tryb jasny/ciemny."""
