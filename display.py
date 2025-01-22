@@ -213,7 +213,12 @@ class TranscriptionApp:
 
     def update_styles(self, event=None):
         """Updates the text style based on selected options."""
-        font_size = int(self.size_var.get())  # Get the selected font size
+        try:
+            font_size = int(self.size_var.get())  # Get the selected font size
+        except ValueError:
+            # Handle the case where the size_var does not contain a valid integer
+            print("Invalid font size value")
+            return
 
         font_style = self.style_var.get().lower()  # Style (italic/normal)
         font_weight = "bold" if self.weight_var.get().lower() == "bold" else "normal"  # Bold
