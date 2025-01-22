@@ -211,10 +211,9 @@ class TranscriptionApp:
         self.options_frame.place(y=new_y)
         self.root.after(10, lambda: self.animate_panel(target_y, step))
 
-
     def update_styles(self, event=None):
         """Updates the text style based on selected options."""
-        font_size = 20  # Fixed font size
+        font_size = int(self.size_var.get())  # Get the selected font size
 
         font_style = self.style_var.get().lower()  # Style (italic/normal)
         font_weight = "bold" if self.weight_var.get().lower() == "bold" else "normal"  # Bold
