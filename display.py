@@ -147,7 +147,7 @@ class TranscriptionApp:
     def init_combobox_options(self):
         # Rozmiar tekstu
         self.size_var = StringVar(value="25")
-        self.add_combobox_option("Text Size", [str(size) for size in range(10, 51, 5)], self.size_var,
+        self.add_combobox_option("Text Size", [str(size) for size in range(20, 51, 5)], self.size_var,
                                  self.update_styles)
 
         # Styl czcionki (normalny/italic)
@@ -166,6 +166,17 @@ class TranscriptionApp:
         self.screen_size = StringVar(value="Small")
         self.add_combobox_option("Screen Size", ["Small", "Fullscreen"], self.screen_size, self.update_styles)
 
+        # Tryb daltonisty
+        self.color_mode_var = StringVar(value="Normal")
+        self.add_combobox_option("Color Mode", ["Tryb żółty", "Tryb biały"], self.color_mode_var,
+                                 self.update_color_mode)
+
+    def update_color_mode(self, event=None):
+        mode = self.color_mode_var.get()
+        if mode == "Tryb żółty":
+            self.text_widget.config(background="#000000", foreground="#FFFF00")
+        elif mode == "Tryb biały":
+            self.text_widget.config(background="#000000", foreground="#FFFFFF")
 
     def toggle_mode(self, event=None):
         """Przełącza tryb jasny/ciemny."""
