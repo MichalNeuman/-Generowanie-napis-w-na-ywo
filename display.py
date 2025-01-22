@@ -211,19 +211,25 @@ class TranscriptionApp:
         self.options_frame.place(y=new_y)
         self.root.after(10, lambda: self.animate_panel(target_y, step))
 
+
     def update_styles(self, event=None):
-        """Aktualizuje styl tekstu w oparciu o wybrane opcje."""
-        font_size = int(self.size_var.get())  # Rozmiar czcionki
-        font_style = self.style_var.get().lower()  # Styl (italic/normal)
-        font_weight = "bold" if self.weight_var.get().lower() == "bold" else "normal"  # Pogrubienie
+        """Updates the text style based on selected options."""
+        font_size = 20  # Fixed font size
 
-        # Kompozycja stylu
-        font_family = "Roboto"
-        font_config = (font_family, font_size, font_style if font_style == "italic" else font_weight)
+        font_style = self.style_var.get().lower()  # Style (italic/normal)
+        font_weight = "bold" if self.weight_var.get().lower() == "bold" else "normal"  # Bold
 
-        # Aktualizacja stylu czcionki w widżecie tekstowym
+        # Get the current font family from the text widget
+        current_font_family = self.text_widget.cget("font").split()[0]
+
+        # Compose the font style without changing the font family
+        font_config = (current_font_family, font_size, font_style if font_style == "italic" else font_weight)
+
+        # Update the font style in the text widget
         self.text_widget.config(font=font_config)
 
+        # Update fullscreen mode
+        self.toggle_screen_size(self.screen_size.get() == "Fullscreen")
 
     def toggle_screen_size(self, fullscreen):
         """Toggle between fullscreen and windowed mode."""
